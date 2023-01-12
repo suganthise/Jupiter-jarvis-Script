@@ -1,0 +1,60 @@
+create database tenant_admin;
+
+
+CREATE TABLE IF NOT EXISTS tenant_master
+(
+    tenant_id UUID CODEC(LZ4HC(0)),
+    tenant_name String CODEC(LZ4HC(0)),
+    tenant_description String CODEC(LZ4HC(0)),
+    tenant_status String CODEC(LZ4HC(0)),
+	deployement_type String CODEC(LZ4HC(0)),
+	start_of_day String CODEC(LZ4HC(0)),
+	start_of_week String CODEC(LZ4HC(0)),
+	timezone String CODEC(LZ4HC(0)),
+	data_retention_duration UInt16 CODEC(LZ4HC(0)), 
+	data_archival_interval UInt16 CODEC(LZ4HC(0)),
+    created_timestamp DateTime default now() CODEC(LZ4HC(0)),
+    modified_timestamp DateTime default now() CODEC(LZ4HC(0))
+)
+ENGINE = ReplacingMergeTree()
+PRIMARY KEY tenant_id
+ORDER BY (tenant_id,tenant_name)
+SETTINGS index_granularity = 8192;
+
+
+CREATE TABLE IF NOT EXISTS source_master
+(
+	source_id UUID CODEC(LZ4HC(0)),
+    tenant_id UUID CODEC(LZ4HC(0)),
+    source_name  String CODEC(LZ4HC(0)),
+    source_status UInt8,
+	deployement_type String CODEC(LZ4HC(0)),
+	domain String CODEC(LZ4HC(0)),
+	kakfa_server String CODEC(LZ4HC(0)),
+	kakfa_port String CODEC(LZ4HC(0)),
+	kafka_secret String CODEC(LZ4HC(0)),
+	pg_server String CODEC(LZ4HC(0)),
+	pg_port String CODEC(LZ4HC(0)),
+	pg_secret String CODEC(LZ4HC(0)),
+    created_timestamp DateTime default now() CODEC(LZ4HC(0)),
+    modified_timestamp DateTime default now() CODEC(LZ4HC(0))
+)
+ENGINE = ReplacingMergeTree()
+PRIMARY KEY source_id
+ORDER BY (source_id,source_name)
+SETTINGS index_granularity = 8192;
+
+
+CREATE TABLE IF NOT EXISTS source_timezone_mapping
+(
+	source_id UUID CODEC(LZ4HC(0)),
+	 tenant_id UUID CODEC(LZ4HC(0)),
+     timezoneid UInt8 CODEC(LZ4HC(0)),
+     timezonename  LowCardinality(String) CODEC(LZ4HC(0)),
+    created_timestamp DateTime default now() CODEC(LZ4HC(0)),
+    modified_timestamp DateTime default now() CODEC(LZ4HC(0))
+)
+ENGINE = ReplacingMergeTree()
+PRIMARY KEY source_id
+ORDER BY (source_id,timezoneid)
+SETTINGS index_granularity = 8192;

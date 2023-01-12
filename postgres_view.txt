@@ -1,0 +1,35 @@
+create view view_businessrule
+as select br_id, br_name,br_description ,moreisgood,br_status,br_parent_id,    br_external,    br_alertable ,
+    br_configstatus ,childcount ,hierarchylevel,cat_id ,_stagecode,
+    br_categoryhierarchy ,reportable_br
+	from businessrule
+
+
+create  or replace view org_configuration
+as
+select
+a.org_id,org_name,
+b.cat_id as business_unit_id ,
+name as business_unit_name 
+from 
+organization  as a inner join category as b on a.org_id=b.org_id
+
+create view view_non_speech_meta
+as
+ select 
+       1 as  source_id ,    
+      ci.callid as system_conversation_id ,
+      clientcallid as conversation_id,
+      ci.org_id,
+      ci.cus_id as cust_id,
+      ci.agent_userid as agent_id,
+      ci.cat_id as business_unit_id ,
+      ci.callcreateddate as conversation_date ,
+      contact_type as conversation_type,
+      nm.nonspeech_metaid as meta_id,
+	  value as meta_value,
+	  nonspeech_metadescription as meta_name
+	from callinfo as ci left outer join callnonspeechmetadata as cnm 
+  on ci.client_callid=cnm.clientcallid left outer join
+  nonspeechmeta nm on nm.nonspeech_metaid=cnm.nonspeech_metaid
+and nm.cat_id=cnm.cat_id

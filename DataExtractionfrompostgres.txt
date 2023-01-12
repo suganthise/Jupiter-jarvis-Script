@@ -1,0 +1,227 @@
+-- View: public.scores
+
+-- DROP VIEW public.scores;
+
+
+CREATE OR REPLACE VIEW public.cantact_attributes_new
+ AS
+ SELECT 1 AS source_id,
+    ci.callid AS system_conversation_id,
+    ci.client_callid AS conversation_id,
+    ci.org_id,
+    ci.cus_id AS cust_id,
+    ci.agent_userid AS agent_id,
+    ci.cat_id AS business_unit_id,
+    ci.callcreateddate AS conversation_date,
+    'voice'::text AS conversation_type,
+    ( SELECT customerdetail.crm_id
+           FROM customerdetail
+          WHERE customerdetail.cus_id = ci.cus_id) AS cust_client_id,
+    ( SELECT users.user_crm_id
+           FROM users
+          WHERE users.userid = ci.agent_userid) AS agent_client_id,
+    ''::text AS journey_id,
+     (EXTRACT (EPOCH FROM ci.startdatetime))::numeric * 1000  AS conversation_timestamp,
+    cm.callduration AS duration,
+    cm.calldurationslabid AS duration_slab_id,
+    ( SELECT metaslab.metaslab_name
+           FROM metaslab
+          WHERE metaslab.metaslab_id = cm.calldurationslabid) AS duration_slab_name,
+    ( SELECT (metaslab.rangestart || '-'::text) || metaslab.rangeend
+           FROM metaslab
+          WHERE metaslab.metaslab_id = cm.calldurationslabid) AS duration_slab_range,
+    cm.callholdcount AS hold_count,
+    cm.callhold AS hold_duration,
+    ''::text AS hold_percentage,
+    cm.agentspeechoverlapcount AS agent_speech_overlap_count,
+    cm.agentspeechoverlap AS agent_speech_overlap_duration,
+    cm.customerspeechoverlapcount AS cust_speech_overlap_count,
+    cm.customerspeechoverlap AS cust_speech_overlap_duration,
+    cm.agentlongtalkcount AS agent_long_talk_count,
+    cm.agentlongtalk AS agent_long_talk_duration,
+    cm.customerlongtalkcount AS cust_long_talk_count,
+    cm.customerlongtalk AS cust_long_talk_duration
+   FROM callinfo ci
+     JOIN callmetasummary cm ON ci.callid = cm.callid
+  WHERE ci.callid >= 1 AND ci.callid <= 2000;
+
+ALTER TABLE public.caontact_attributes
+    OWNER TO postgres;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CREATE OR REPLACE VIEW public.scores
+ AS
+ SELECT 1 AS source_id,
+    ci.callid AS system_conversation_id,
+    ci.client_callid AS conversation_id,
+    ci.org_id,
+    ci.cus_id AS cust_id,
+    ci.agent_userid AS agent_id,
+    ci.cat_id AS business_unit_id,
+    ci.callcreateddate AS conversation_date,
+    'voice'::text AS conversation_type,
+    ( SELECT customerdetail.crm_id
+           FROM customerdetail
+          WHERE customerdetail.cus_id = ci.cus_id) AS cust_client_id,
+    ( SELECT users.user_crm_id
+           FROM users
+          WHERE users.userid = ci.agent_userid) AS agent_client_id,
+    ''::text AS journey_id,
+    ci.startdatetime AS conversation_timestamp,
+    cls.score_id,
+    ( SELECT score.name
+           FROM score
+          WHERE score.score_id = cls.score_id) AS score_name,
+    cls.value AS score_value,
+    cls.scoreslab_id AS slab_id,
+    ( SELECT scoreslab.scoreslab_name
+           FROM scoreslab
+          WHERE scoreslab.scoreslab_id = cls.scoreslab_id) AS slab_name,
+    ( SELECT (scoreslab.rangestart || '-'::text) || scoreslab.rangeend
+           FROM scoreslab
+          WHERE scoreslab.scoreslab_id = cls.scoreslab_id) AS slab_range
+   FROM callinfo ci
+     JOIN calllevelscoreresult cls ON ci.callid = cls.callid
+  WHERE ci.callid >= 1 AND ci.callid <= 2000;
+
+ALTER TABLE public.scores
+    OWNER TO postgres;
+
+-----------------------------------------------------------------------------------------------
+
+-- View: public.score_component
+
+-- DROP VIEW public.score_component;
+
+CREATE OR REPLACE VIEW public.score_component
+ AS
+ SELECT 1 AS source_id,
+    ci.callid AS system_conversation_id,
+    ci.client_callid AS conversation_id,
+    ci.org_id,
+    ci.cus_id AS cust_id,
+    ci.agent_userid AS agent_id,
+    ci.cat_id AS business_unit_id,
+    ci.callcreateddate AS conversation_date,
+    'voice'::text AS conversation_type,
+    ( SELECT customerdetail.crm_id
+           FROM customerdetail
+          WHERE customerdetail.cus_id = ci.cus_id) AS cust_client_id,
+    ( SELECT users.user_crm_id
+           FROM users
+          WHERE users.userid = ci.agent_userid) AS agent_client_id,
+    ''::text AS journey_id,
+    ci.startdatetime AS conversation_timestamp,
+    clsr.score_id,
+    ( SELECT
+                CASE scorecomponent.scorecomptype
+                    WHEN 'BusinessRule'::text THEN scorecomponent.br_id
+                    ELSE scorecomponent.meta_id
+                END AS meta_id
+           FROM scorecomponent
+          WHERE scorecomponent.scorecomponent_id = clsr.scorecomponent_id) AS score_component_type,
+    clsr.scorecomponent_id AS score_component_id,
+    ( SELECT
+                CASE scorecomponent.scorecomptype
+                    WHEN 'BusinessRule'::text THEN scorecomponent.br_id
+                    ELSE scorecomponent.meta_id
+                END AS meta_id
+           FROM scorecomponent
+          WHERE scorecomponent.scorecomponent_id = clsr.scorecomponent_id) AS component_id,
+    clsr.value AS score_component_value,
+    ( SELECT scorecomponent.name
+           FROM scorecomponent
+          WHERE scorecomponent.scorecomponent_id = clsr.scorecomponent_id) AS score_component_name
+   FROM callinfo ci
+     JOIN calllevelscorecomponentresult clsr ON ci.callid = clsr.callid
+  WHERE ci.callid >= 1 AND ci.callid <= 2000;
+
+ALTER TABLE public.score_component
+    OWNER TO postgres;
+
+
+---------------------------------------------------------------------------------------------
+
+
+
+
+CREATE OR REPLACE VIEW public.businessrules
+ AS
+ SELECT 1 AS source_id,
+    ci.callid AS system_conversation_id,
+    ci.client_callid AS conversation_id,
+    ci.org_id,
+    ci.cus_id AS cust_id,
+    ci.agent_userid AS agent_id,
+    ci.cat_id AS business_unit_id,
+    ci.callcreateddate AS conversation_date,
+    'voice'::text AS conversation_type,
+    ( SELECT customerdetail.crm_id
+           FROM customerdetail
+          WHERE customerdetail.cus_id = ci.cus_id) AS cust_client_id,
+    ( SELECT users.user_crm_id
+           FROM users
+          WHERE users.userid = ci.agent_userid) AS agent_client_id,
+    ''::text AS journey_id,
+    ci.startdatetime AS conversation_timestamp,
+    br.br_id,
+    ( SELECT businessrule.br_name
+           FROM businessrule
+          WHERE br.br_id = businessrule.br_id) AS br_name,
+    br.brr_value AS br_value
+   FROM callinfo ci
+     JOIN brresult br ON ci.callid = br.callid
+  WHERE ci.callid >= 1 AND ci.callid <= 2000;
+
+ALTER TABLE public.businessrules
+    OWNER TO postgres;
+
+------------------------------------------------------------
+
+CREATE OR REPLACE VIEW keywords
+ AS
+ SELECT 1 AS source_id,
+    ci.callid AS system_conversation_id,
+    ci.client_callid AS conversation_id,
+    ci.org_id,
+    ci.cus_id AS cust_id,
+    ci.agent_userid AS agent_id,
+    ci.cat_id AS business_unit_id,
+    ci.callcreateddate AS conversation_date,
+    'voice'::text AS conversation_type,
+    ( SELECT customerdetail.crm_id
+           FROM customerdetail
+          WHERE customerdetail.cus_id = ci.cus_id) AS cust_client_id,
+    ( SELECT users.user_crm_id
+           FROM users
+          WHERE users.userid = ci.agent_userid) AS agent_client_id,
+    ''::text AS journey_id,
+    ci.startdatetime AS conversation_timestamp,
+    br_id as br_id,
+	   br_name as br_name,
+	   cva.keyword_id ,
+  	   keyword_name as keyword_text,
+	   startoffset,
+	   endoffset,
+	   channel
+	      
+   FROM callinfo ci
+     JOIN callvoiceattribute cva ON ci.callid = cva.callid
+	 left outer join view_brmap as vbr on vbr.keyword_id=cva.keyword_id
+  WHERE ci.callid >= 1 AND ci.callid <= 2000;
+
+

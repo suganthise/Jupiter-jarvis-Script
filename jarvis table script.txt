@@ -1,0 +1,364 @@
+CREATE TABLE conversation_attributes
+(
+      source_id UUID CODEC(LZ4HC(0)),    
+      system_conversation_id UInt64 CODEC(LZ4HC(0)),
+      conversation_id String CODEC(LZ4HC(0)),
+      org_id UInt8 CODEC(LZ4HC(0)),
+      cust_id UInt8 CODEC(LZ4HC(0)),
+      agent_id UInt8 CODEC(LZ4HC(0)),
+      business_unit_id UInt8 CODEC(LZ4HC(0)),
+      conversation_date Date CODEC(LZ4HC(0)),
+      conversation_type String CODEC(LZ4HC(0)),
+      cust_client_id String CODEC(LZ4HC(0)),
+      agent_client_id String CODEC(LZ4HC(0)),
+      journey_id String CODEC(LZ4HC(0)),
+      conversation_timestamp UInt64 CODEC(LZ4HC(0)),
+      duration UInt256 CODEC(LZ4HC(0)),
+      duration_slab_id UInt32 CODEC(LZ4HC(0)),
+      duration_slab_name String CODEC(LZ4HC(0)),
+      duration_slab_range String CODEC(LZ4HC(0)),
+      hold_count UInt32 CODEC(LZ4HC(0)),
+      hold_duration UInt256 CODEC(LZ4HC(0)),
+      hold_percentage Float32 CODEC(LZ4HC(0)),  -- not used
+      agent_speech_overlap_count UInt32 CODEC(LZ4HC(0)),
+      agent_speech_overlap_duration UInt256  CODEC(LZ4HC(0)),
+      cust_speech_overlap_count UInt32 CODEC(LZ4HC(0)),  
+      cust_speech_overlap_duration UInt256 CODEC(LZ4HC(0)),
+      agent_long_talk_count UInt32 CODEC(LZ4HC(0)),
+      agent_long_talk_duration UInt256  CODEC(LZ4HC(0)),
+      cust_long_talk_count UInt32 CODEC(LZ4HC(0)),
+      cust_long_talk_duration UInt256  CODEC(LZ4HC(0)),
+      created_timestamp DateTime default now() CODEC(LZ4HC(0))
+      )
+ENGINE = ReplacingMergeTree()
+PARTITION BY toYYYYMM(conversation_date)
+PRIMARY KEY system_conversation_id
+ORDER BY (system_conversation_id,source_id,
+ org_id,
+ business_unit_id)
+SETTINGS index_granularity = 8192;
+
+
+CREATE TABLE business_rules
+(
+      source_id UUID CODEC(LZ4HC(0)),    
+      system_conversation_id UInt64 CODEC(LZ4HC(0)),
+      conversation_id String CODEC(LZ4HC(0)),
+      org_id UInt8 CODEC(LZ4HC(0)),
+      cust_id UInt8 CODEC(LZ4HC(0)),
+      agent_id UInt8 CODEC(LZ4HC(0)),
+      business_unit_id UInt8 CODEC(LZ4HC(0)),
+      conversation_date Date CODEC(LZ4HC(0)),
+      conversation_type String CODEC(LZ4HC(0)),
+      cust_client_id String CODEC(LZ4HC(0)),
+      agent_client_id String CODEC(LZ4HC(0)),
+      journey_id String CODEC(LZ4HC(0)),
+      conversation_timestamp UInt64 CODEC(LZ4HC(0)),
+      br_id UInt32 CODEC(LZ4HC(0)),
+      br_name LowCardinality(String)  CODEC(LZ4HC(0)),
+      br_value UInt8 CODEC(LZ4HC(0)),
+      created_timestamp DateTime default now() CODEC(LZ4HC(0))
+           )
+ENGINE = ReplacingMergeTree()
+PARTITION BY toYYYYMM(conversation_date)
+PRIMARY KEY system_conversation_id
+ORDER BY (system_conversation_id,source_id,
+ org_id,
+ business_unit_id,
+ br_id)
+SETTINGS index_granularity = 8192;
+
+
+
+
+CREATE TABLE scores
+(
+      source_id UUID CODEC(LZ4HC(0)),    
+      system_conversation_id UInt64 CODEC(LZ4HC(0)),
+      conversation_id String CODEC(LZ4HC(0)),
+      org_id UInt8 CODEC(LZ4HC(0)),
+      cust_id UInt8 CODEC(LZ4HC(0)),
+      agent_id UInt8 CODEC(LZ4HC(0)),
+      business_unit_id UInt8 CODEC(LZ4HC(0)),
+      conversation_date Date CODEC(LZ4HC(0)),
+      conversation_type String CODEC(LZ4HC(0)),
+      cust_client_id String CODEC(LZ4HC(0)),
+      agent_client_id String CODEC(LZ4HC(0)),
+      journey_id String CODEC(LZ4HC(0)),
+      conversation_timestamp UInt64 CODEC(LZ4HC(0)),
+     score_id UInt32 CODEC(LZ4HC(0)),
+     score_name LowCardinality(String) CODEC(LZ4HC(0)),
+     score_value Float32 CODEC(LZ4HC(0)),
+     slab_id UInt32 CODEC(LZ4HC(0)),
+      slab_name String CODEC(LZ4HC(0)),
+      slab_range String CODEC(LZ4HC(0)),
+      created_timestamp DateTime default now() CODEC(LZ4HC(0))
+    
+)
+ENGINE = ReplacingMergeTree()
+PARTITION BY toYYYYMM(conversation_date)
+PRIMARY KEY system_conversation_id
+ORDER BY (system_conversation_id,source_id,
+ org_id,
+ business_unit_id,
+ score_id)
+SETTINGS index_granularity = 8192;
+
+
+
+CREATE TABLE score_component
+(
+      source_id UUID CODEC(LZ4HC(0)),    
+        system_conversation_id UInt64 CODEC(LZ4HC(0)),
+        conversation_id String CODEC(LZ4HC(0)),
+        org_id UInt8 CODEC(LZ4HC(0)),
+        cust_id UInt8 CODEC(LZ4HC(0)),
+        agent_id UInt8 CODEC(LZ4HC(0)),
+        business_unit_id UInt8 CODEC(LZ4HC(0)),
+        conversation_date Date CODEC(LZ4HC(0)),
+        conversation_type String CODEC(LZ4HC(0)),
+        cust_client_id String CODEC(LZ4HC(0)),
+        agent_client_id String CODEC(LZ4HC(0)),
+        journey_id String CODEC(LZ4HC(0)),
+        conversation_timestamp UInt64 CODEC(LZ4HC(0)),
+        score_id UInt32 CODEC(LZ4HC(0)),
+        Score_component_type String CODEC(LZ4HC(0)),
+	score_component_id UInt32 CODEC(LZ4HC(0)),
+	component_id UInt32 CODEC(LZ4HC(0)),
+	Score_component_value Float32 CODEC(LZ4HC(0)),
+	score_component_name LowCardinality(String) CODEC(LZ4HC(0)),
+      created_timestamp DateTime default now() CODEC(LZ4HC(0))   
+)
+ENGINE = ReplacingMergeTree()
+PARTITION BY toYYYYMM(conversation_date)
+PRIMARY KEY system_conversation_id
+ORDER BY (system_conversation_id,source_id,
+ org_id,business_unit_id, score_id,
+score_component_id)
+SETTINGS index_granularity = 8192; 
+
+
+
+
+CREATE TABLE keywords
+(
+      source_id UUID CODEC(LZ4HC(0)),    
+      system_conversation_id UInt64 CODEC(LZ4HC(0)),
+      conversation_id String CODEC(LZ4HC(0)),
+      org_id UInt8 CODEC(LZ4HC(0)),
+      cust_id UInt8 CODEC(LZ4HC(0)),
+      agent_id UInt8 CODEC(LZ4HC(0)),
+      business_unit_id UInt8 CODEC(LZ4HC(0)),
+      conversation_date Date CODEC(LZ4HC(0)),
+      conversation_type String CODEC(LZ4HC(0)),
+      cust_client_id String CODEC(LZ4HC(0)),
+      agent_client_id String CODEC(LZ4HC(0)),
+      journey_id String CODEC(LZ4HC(0)),
+      conversation_timestamp UInt64 CODEC(LZ4HC(0)),
+      br_id UInt32 CODEC(LZ4HC(0)),
+      br_name LowCardinality(String) CODEC(LZ4HC(0)),
+      keyword_id UInt32 CODEC(LZ4HC(0)),
+      keyword_text LowCardinality(String) CODEC(LZ4HC(0)),
+      start_offset UInt32 CODEC(LZ4HC(0)),
+      end_offset UInt32 CODEC(LZ4HC(0)),
+      channel String CODEC(LZ4HC(0)),
+      created_timestamp DateTime default now() CODEC(LZ4HC(0))     
+)
+ENGINE = ReplacingMergeTree()
+PARTITION BY toYYYYMM(conversation_date)
+PRIMARY KEY system_conversation_id
+ORDER BY (system_conversation_id,source_id,
+ org_id, business_unit_id, br_id
+ )
+SETTINGS index_granularity = 8192;
+
+
+
+
+CREATE TABLE nonspeechmetadata
+(
+      source_id UUID CODEC(LZ4HC(0)),    
+      system_conversation_id UInt64 CODEC(LZ4HC(0)),
+      conversation_id String CODEC(LZ4HC(0)),
+      org_id UInt8 CODEC(LZ4HC(0)),
+      cust_id UInt8 CODEC(LZ4HC(0)),
+      agent_id UInt8 CODEC(LZ4HC(0)),
+      business_unit_id UInt8 CODEC(LZ4HC(0)),
+      conversation_date Date CODEC(LZ4HC(0)),
+      conversation_type String CODEC(LZ4HC(0)),
+      meta_id UInt32 CODEC(LZ4HC(0)),
+      meta_name LowCardinality(String) CODEC(LZ4HC(0)),
+      meta_value String CODEC(LZ4HC(0)),
+      created_timestamp DateTime default now() CODEC(LZ4HC(0))
+ )
+ENGINE = ReplacingMergeTree()
+PARTITION BY toYYYYMM(conversation_date)
+PRIMARY KEY system_conversation_id
+ORDER BY (system_conversation_id,source_id,
+ org_id,
+ business_unit_id,
+ meta_id
+ )
+SETTINGS index_granularity = 8192;
+
+
+-------------------------------  Materialized View ----------------------------------------
+
+
+
+CREATE TABLE agentwise_daywise_aggregation_conversation_attributes
+(
+      source_id UUID CODEC(LZ4HC(0)),    
+      org_id UInt8 CODEC(LZ4HC(0)),
+       business_unit_id UInt8 CODEC(LZ4HC(0)),
+       total_customer UInt8 CODEC(LZ4HC(0)),
+       agent_id UInt8 CODEC(LZ4HC(0)),
+       total_system_conversation_count UInt64 CODEC(LZ4HC(0)),
+      conversation_date Date CODEC(LZ4HC(0)),
+      conversation_type  String CODEC(LZ4HC(0)),
+      journey_id String CODEC(LZ4HC(0)),
+      duration UInt256 CODEC(LZ4HC(0)),
+      duration_slab_id UInt32 CODEC(LZ4HC(0)),
+      duration_slab_name String CODEC(LZ4HC(0)),
+      duration_slab_range String CODEC(LZ4HC(0)),
+      hold_count UInt32 CODEC(LZ4HC(0)),
+      hold_duration UInt256 CODEC(LZ4HC(0)),
+      created_timestamp DateTime default now() CODEC(LZ4HC(0))
+  
+)
+ENGINE = ReplacingMergeTree()
+PRIMARY KEY conversation_date
+ORDER BY (conversation_date,source_id,
+ org_id, business_unit_id,agent_id)
+SETTINGS index_granularity = 8192;
+
+------------------------------------------------
+
+create materialized view mv_conversation_attributes 
+to agentwise_daywise_aggregation_conversation_attributes
+ as 
+  select 
+      source_id ,    
+      org_id ,
+      business_unit_id ,
+      count(cust_id) as total_customer,
+      agent_id as agent_id,
+      count(system_conversation_id) as total_system_conversation_count,
+      conversation_date  as conversation_date,
+      conversation_type ,
+      journey_id,
+      sum(duration) as duration,
+      duration_slab_id,
+      duration_slab_name,
+      duration_slab_range,
+      sum(hold_count)  as hold_count,
+      sum(hold_duration) as hold_duration
+      from conversation_attributes
+       group by  source_id,conversation_date,agent_id,org_id ,business_unit_id,duration_slab_range,
+      conversation_date,conversation_type ,journey_id,duration_slab_id,duration_slab_name
+      ORDER BY (source_id, conversation_date,org_id,business_unit_id,agent_id)
+
+------------------------------------------------------------
+
+
+CREATE TABLE agentwise_daywise_aggregation_business_rules
+(
+      source_id UUID CODEC(LZ4HC(0)),    
+      total_system_conversation_count UInt64 CODEC(LZ4HC(0)),
+       org_id UInt8 CODEC(LZ4HC(0)),
+       business_unit_id UInt8 CODEC(LZ4HC(0)),
+       total_customer UInt8 CODEC(LZ4HC(0)),
+       agent_id UInt8 CODEC(LZ4HC(0)),
+      conversation_date Date CODEC(LZ4HC(0)),
+      conversation_type  String CODEC(LZ4HC(0)),
+      journey_id String CODEC(LZ4HC(0)),
+      br_id UInt32 CODEC(LZ4HC(0)),
+      br_name String  CODEC(LZ4HC(0)),
+      true_br_count UInt8 CODEC(LZ4HC(0)),
+      created_timestamp DateTime default now() CODEC(LZ4HC(0))
+   )
+ENGINE = ReplacingMergeTree()
+PRIMARY KEY conversation_date
+ORDER BY (conversation_date,source_id,
+ org_id, business_unit_id,agent_id
+ )
+SETTINGS index_granularity = 8192;
+
+----------------------------------------------------------------------------
+
+create materialized view mv_business_rules 
+to agentwise_daywise_aggregation_business_rules
+ as 
+  select 
+      source_id ,    
+      count(system_conversation_id) as total_system_conversation_count,
+      org_id ,
+      business_unit_id ,
+      count(cust_id) as total_customer,
+      agent_id ,
+      conversation_date  as conversation_date,
+      conversation_type ,
+      journey_id,
+      br_id,
+      br_name,
+      sum(br_value) as true_br_count      
+      from business_rules
+       group by  source_id,conversation_date,org_id,agent_id ,business_unit_id,
+     conversation_type ,journey_id,br_id,br_name
+      ORDER BY (source_id, conversation_date,org_id,business_unit_id,agent_id)
+
+----------------------------------------------------------------
+
+CREATE TABLE agentwise_daywise_aggregation_scores
+(
+      source_id UUID CODEC(LZ4HC(0)),    
+      total_system_conversation_count UInt64 CODEC(LZ4HC(0)),
+       org_id UInt8 CODEC(LZ4HC(0)),
+       business_unit_id UInt8 CODEC(LZ4HC(0)),
+       total_customer UInt8 CODEC(LZ4HC(0)),
+       agent_id UInt8 CODEC(LZ4HC(0)),
+      conversation_date Date CODEC(LZ4HC(0)),
+      conversation_type  String CODEC(LZ4HC(0)),
+      journey_id String CODEC(LZ4HC(0)),
+     score_id UInt32 CODEC(LZ4HC(0)),
+     score_name String CODEC(LZ4HC(0)),
+     score_sum Float32 CODEC(LZ4HC(0)),
+     slab_id UInt32 CODEC(LZ4HC(0)),
+      slab_name String CODEC(LZ4HC(0)),
+      slab_range String CODEC(LZ4HC(0)),
+      created_timestamp DateTime default now() CODEC(LZ4HC(0))
+   )
+ENGINE = ReplacingMergeTree()
+PRIMARY KEY conversation_date
+ORDER BY (conversation_date,source_id,
+ org_id, business_unit_id,agent_id
+ )
+SETTINGS index_granularity = 8192;
+
+--------------------------------------------
+
+
+create materialized view mv_scores
+to agentwise_daywise_aggregation_scores
+ as 
+  select 
+      source_id ,    
+      count(system_conversation_id) as total_system_conversation_count,
+      org_id ,
+      business_unit_id ,
+      count(cust_id) as total_customer,
+     agent_id as total_agent,
+      conversation_date  as conversation_date,
+      conversation_type ,
+      journey_id,
+     score_id ,
+     score_name ,
+     sum(score_value) as score_sum,
+     slab_id,
+     slab_name ,
+     slab_range
+      from scores
+       group by  source_id,conversation_date,org_id,agent_id ,business_unit_id,
+     conversation_type ,journey_id,score_id ,score_name ,slab_id,
+    slab_name ,slab_range
+      ORDER BY (source_id, conversation_date,org_id,business_unit_id,agent_id)
